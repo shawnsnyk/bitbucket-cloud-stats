@@ -133,11 +133,10 @@ async function getBBCloudContributorCount (config) {
       //RESPONSE: { data: { pagelen: 10, values: [ [Object], [Object] ], page: 1, size: 2 , next},
   
       //console.log(data);
-      //console.log('Data Retrieved');
+      //console.log('Data Retrieved');test
       //repoData.push(...data.data); //?? What is ...
       var pageSize = responsedata.data.size;
       var curPage = responsedata.data.page;
-  
       console.log('=========================For Each Repo============================')
       for (var i = 0, len = responsedata.data.values.length; i < len; i++) {
         //console.log(responsedata.data.values[i]);
