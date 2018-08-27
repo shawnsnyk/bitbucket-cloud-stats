@@ -81,7 +81,8 @@ async function getBBCloudContributorCount (config) {
       console.log('=========Repo Start: ' +  responsedata.data.values[i].full_name +  '=============');
       //console.log(responsedata.data.values[i].links.commits.href);
       //commit example filter: https://developer.atlassian.com/bitbucket/api/2/reference/resource/repositories/%7Busername%7D/%7Brepo_slug%7D/filehistory/%7Bnode%7D/%7Bpath%7D?_ga=2.43500256.414019426.1535331392-1143805731.1535119351
-      var commitUrl=responsedata.data.values[i].links.commits.href + "?q=date%3E" + cutOffDate +"T00:00:00+00:00:00";
+      //another filter example: https://community.atlassian.com/t5/Bitbucket-questions/bitbucket-api-query-all-commits/qaq-p/651345
+      var commitUrl=responsedata.data.values[i].links.commits.href + "?q=date+%3E+" + cutOffDate;
       var commitResponsedata = await getDataFromBBAPI(commitUrl, config);
       console.log('----COMMIT RECORD Start------');
       for (var j = 0, len2 = commitResponsedata.data.values.length; j < len; j++) 
@@ -122,7 +123,7 @@ async function getBBCloudContributorCount (config) {
     return repoData;
   }
 
-  async function getBBCloudContributorCountV2 (config) {
+  async function DELETEMEgetBBCloudContributorCountV2 (config) {
 
     //works better - filtered: curl -l --user userid:yourapppassword https://api.bitbucket.org/2.0/repositories/
   
