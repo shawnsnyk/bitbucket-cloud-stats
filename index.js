@@ -76,7 +76,6 @@ async function getBBCloudContributorCount (config) {
     //RESPONSE: { data: { pagelen: 10, values: [ [Object], [Object] ], page: 1, size: 2 , next},
     var pageSize = responsedata.data.size;
     var curPage = responsedata.data.page;
-
     console.log('For Each Repo:')
     for (var i = 0, len = responsedata.data.values.length; i < len; i++) {
       console.log('=========Repo Start: ' +  responsedata.data.values[i].full_name +  '=============');
@@ -84,7 +83,7 @@ async function getBBCloudContributorCount (config) {
       var commitUrl=responsedata.data.values[i].links.commits.href
       var commitResponsedata = await getDataFromBBAPI(commitUrl, config);
       console.log('----COMMIT RECORD Start------');
-      for (var j = 0, len = commitResponsedata.data.values.length; j < len; j++) 
+      for (var j = 0, len2 = commitResponsedata.data.values.length; j < len; j++) 
       {
         
         if(debug > 0)
@@ -113,6 +112,7 @@ async function getBBCloudContributorCount (config) {
       console.log('TODO: Paginating repos');
       console.log('TODO: Paginating commits');
       console.log('TODO: Filter on cutoffdate');
+      console.log('TODO: Filter on private');
       console.log('RESEARCH TO DO: what about filtering or doing pull requests like this: https://bitbucket.org/snykdemo-sm/2.0/repositories/main/repo/pullrequests?q=source.repository.full_name+%21%3D+%22main%2Frepo%22+AND+state+%3D+%22OPEN%22+AND+reviewers.username+%3D+%22snykdemo-sm%22+AND+destination.branch.name+%3D+%22master%22')
     }
     //MAJOR TO DO: YOU STILL NEED TO HANDLE PAGING --Look at NEXT and start this whole thing over again!
@@ -133,7 +133,7 @@ async function getBBCloudContributorCount (config) {
       //RESPONSE: { data: { pagelen: 10, values: [ [Object], [Object] ], page: 1, size: 2 , next},
   
       //console.log(data);
-      //console.log('Data Retrieved');test
+      //console.log('Data Retrieved');
       //repoData.push(...data.data); //?? What is ...
       var pageSize = responsedata.data.size;
       var curPage = responsedata.data.page;
@@ -180,6 +180,7 @@ async function getBBCloudContributorCount (config) {
         console.log('TODO: Paginating repos');
         console.log('TODO: Paginating commits');
         console.log('TODO: Filter on cutoffdate');
+        console.log('TODO: Filter on private');
         console.log('RESEARCH TO DO: what about filtering or doing pull requests like this: https://bitbucket.org/snykdemo-sm/2.0/repositories/main/repo/pullrequests?q=source.repository.full_name+%21%3D+%22main%2Frepo%22+AND+state+%3D+%22OPEN%22+AND+reviewers.username+%3D+%22snykdemo-sm%22+AND+destination.branch.name+%3D+%22master%22')
         console.log('=========================================================');
         console.log('=====THIS PROGRAM IS WORK IN PROGRESS - DO NOT USE!======');
@@ -218,7 +219,7 @@ program
         };
        
         calculateCutOffDate();
-        getBBCloudContributorCountV2(config)
+        getBBCloudContributorCount(config)
         .then((data) => {
           //console.log(data);
         })
