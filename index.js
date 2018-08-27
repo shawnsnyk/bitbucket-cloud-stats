@@ -80,7 +80,8 @@ async function getBBCloudContributorCount (config) {
     for (var i = 0, len = responsedata.data.values.length; i < len; i++) {
       console.log('=========Repo Start: ' +  responsedata.data.values[i].full_name +  '=============');
       //console.log(responsedata.data.values[i].links.commits.href);
-      var commitUrl=responsedata.data.values[i].links.commits.href
+      //commit example filter: https://developer.atlassian.com/bitbucket/api/2/reference/resource/repositories/%7Busername%7D/%7Brepo_slug%7D/filehistory/%7Bnode%7D/%7Bpath%7D?_ga=2.43500256.414019426.1535331392-1143805731.1535119351
+      var commitUrl=responsedata.data.values[i].links.commits.href + "?q=date%3E" + cutOffDate +"T00:00:00+00:00:00";
       var commitResponsedata = await getDataFromBBAPI(commitUrl, config);
       console.log('----COMMIT RECORD Start------');
       for (var j = 0, len2 = commitResponsedata.data.values.length; j < len; j++) 
@@ -144,7 +145,9 @@ async function getBBCloudContributorCount (config) {
         //YOU NEED TO PASS CUTOFF DATE AS A FILTER AND THINK OF PAGINATION OF COMMITS
         console.log(responsedata.data.values[i].links.commits.href);
         //var commitUrl=responsedata.data.values[i].links.commits.href + "?created_on>" + cutOffDate;// + "T:00:00:00";
-        var commitUrl=targetUrl + responsedata.data.values[i].name + "/pullrequests?q=created_on>2018-01-01" //+ cutOffDate;// + "T:00:00:00";
+        //FILTER EXAMPLE: https://blog.bitbucket.org/2018/06/15/new-bitbucket-cloud-v2-apis/
+        //COMMIT; https://developer.atlassian.com/bitbucket/api/2/reference/resource/repositories/%7Busername%7D/%7Brepo_slug%7D/filehistory/%7Bnode%7D/%7Bpath%7D?_ga=2.43500256.414019426.1535331392-1143805731.1535119351
+        var commitUrl=targetUrl + responsedata.data.values[i].name + "/pullrequests?q=date>2018-01-01" //+ cutOffDate;// + "T:00:00:00";
         var commitResponsedata = await getDataFromBBAPI(commitUrl, config);
         console.log(commitResponsedata);
         console.log('----COMMIT RECORD Start------');
