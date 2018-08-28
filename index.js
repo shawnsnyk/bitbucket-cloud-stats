@@ -4,8 +4,6 @@
         =====THIS PROGRAM IS WORK IN PROGRESS - DO NOT USE!======');
         =========================================================');
 
-        Currently overrides date manually. Should be done in query:
-        //Look here for date handling problem if solution is available: https://community.atlassian.com/t5/Bitbucket-questions/Bitbucket-cloud-api-2-0-querying-commits-how-to-filter-on-date/qaq-p/877317#M31927
 */
 const INTER_CALLS_DELAY = 1000;
 
