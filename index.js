@@ -76,24 +76,43 @@ async function getBBCloudContributorCount (config) {
     //RESPONSE: { data: { pagelen: 10, values: [ [Object], [Object] ], page: 1, size: 2 , next},
     var pageSize = responsedata.data.size;
     var curPage = responsedata.data.page;
+    if(responsedata.data.next)
+    {
+        console.log('Next page - repo: ' + responsedata.data.next)
+    }
+    console.log('Number of repos: ' + responsedata.data.values.length)
+    console.log('Pagesize:' + pageSize);
+    console.log('curPage:' + curPage);
     console.log('For Each Repo:')
     for (var i = 0, len = responsedata.data.values.length; i < len; i++) {
       console.log('=========Repo Start: ' +  responsedata.data.values[i].full_name +  '=============');
       //console.log(responsedata.data.values[i].links.commits.href);
       //commit example filter: https://developer.atlassian.com/bitbucket/api/2/reference/resource/repositories/%7Busername%7D/%7Brepo_slug%7D/filehistory/%7Bnode%7D/%7Bpath%7D?_ga=2.43500256.414019426.1535331392-1143805731.1535119351
       //another filter example: https://community.atlassian.com/t5/Bitbucket-questions/bitbucket-api-query-all-commits/qaq-p/651345
-      var commitUrl=responsedata.data.values[i].links.commits.href + "?q=date+%3E+" + cutOffDate;
+      var commitUrl=responsedata.data.values[i].links.commits.href ; //+ "?q=value.date+%3E+" + cutOffDate;
       var commitResponsedata = await getDataFromBBAPI(commitUrl, config);
       console.log('----COMMIT RECORD Start------');
-      for (var j = 0, len2 = commitResponsedata.data.values.length; j < len; j++) 
+      for (var j = 0, len2 = commitResponsedata.data.values.length; j < len2; j++) 
       {
-        
+        //console.log(commitResponsedata.data); //SHOW JSON object
+        var pageCommitSize = commitResponsedata.data.pagelen;
+        console.log('     pagelen:' + pageCommitSize);
+
+        if(commitResponsedata.data.next)
+        {
+           console.log('Next page - repo: ' + commitResponsedata.data.next)
+        }
+        console.log('Number of commits against repo: ' + commitResponsedata.data.values.length)
         if(debug > 0)
         {
           console.log('     ----Record: ' + j + '------');
-          console.log('     ' + commitResponsedata.data.values[j].repository.name);
-          console.log('     ' + commitResponsedata.data.values[j].author.raw + ' type: ' + commitResponsedata.data.values[j].author.type);
-          console.log('     ' + commitResponsedata.data.values[j].date);
+          console.log('     repo: ' + commitResponsedata.data.values[j].repository.name);
+          console.log('     auth: ' + commitResponsedata.data.values[j].author.raw + ' type: ' + commitResponsedata.data.values[j].author.type);
+          console.log('     date: ' + commitResponsedata.data.values[j].date);
+          if(cutOffDate>=commitResponsedata.data.values[j].date)
+          {
+            console.log('            ****Date does not meet criteria****');
+          }
 
           var rawSummary= commitResponsedata.data.values[j].summary.raw
           if (rawSummary.length >30)
@@ -152,7 +171,7 @@ async function getBBCloudContributorCount (config) {
         var commitResponsedata = await getDataFromBBAPI(commitUrl, config);
         console.log(commitResponsedata);
         console.log('----COMMIT RECORD Start------');
-        /*for (var j = 0, len = commitResponsedata.data.values.length; j < len; j++) 
+        /*for (var j = 0, len2 = commitResponsedata.data.values.length; j < len2; j++) 
         {
           
           if(debug > 0)
@@ -239,6 +258,21 @@ program.parse(process.argv);
 
 if (program.args.length === 0) program.help();
 
+/*
+//commit
+{ pagelen: 30,
+  values: 
+   [ { hash: '2b660349cfd04f07dd5f7ecc4a0066bfccf6afff',
+       repository: [Object],
+       links: [Object],
+       author: [Object],
+       summary: [Object],
+       parents: [Array],
+       date: '2018-07-31T09:19:46+00:00',
+       message: 'TFB-1555, TFB-1912: Dirty requests break IN_APP purchase\n',
+       type: 'commit' },
+
+*/
 //root /2.0/repositories/shawnsnyk/bitbucket-cloud-stats
 //Pull reqs by user:   /2.0/repositories/shawnsnyk/bitbucket-cloud-stats/pullrequests?q=source.repository.full_name+%21%3D+%22main%2Frepo%22+AND+state+%3D+%22OPEN%22+AND+reviewers.username+%3D+%22evzijst%22+AND+destination.branch.name+%3D+%22master%22
 /*Fields: https://developer.atlassian.com/bitbucket/api/2/reference/meta/filtering
