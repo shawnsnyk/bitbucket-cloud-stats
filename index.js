@@ -16,7 +16,7 @@ const chalk = require('chalk'); //string style
 const figlet = require('figlet'); //starwars large text
 const axios = require('axios'); //HTTP agent
 const moment = require('moment'); //library for processing/ formatting/parsing dates
-var debug=1;
+var debug=0;
 
 var cutOffDate;
 
@@ -72,6 +72,7 @@ async function getBBCloudContributorCount (config) {
     var targetUrl = config.apiurl+ "repositories/" + config.username +'/';
     var repoData = [];
     var nextUrl = "";
+    var arrContributorNames=[];
 
     nextUrl=targetUrl; //populate first target URL
 
@@ -84,20 +85,26 @@ async function getBBCloudContributorCount (config) {
       var curPage = responsedata.data.page;
       if(responsedata.data.next)
       {
-          console.log('Next Page - REPO: ' + responsedata.data.next);
+          if(debug > 0) console.log('Next Page - REPO: ' + responsedata.data.next);
           nextUrl=responsedata.data.next;
       }
       else
       {
-        console.log('NO NEXT PAGE - REPO');
+        if(debug > 0) console.log('NO NEXT PAGE - REPO');
         nextUrl="";
       }
-      console.log('Number of repos: ' + responsedata.data.values.length)
-      console.log('Pagesize:' + pageSize);
-      console.log('curPage:' + curPage);
-      console.log('For Each Repo:')
+      if(debug > 0) 
+      {
+        console.log('Number of repos: ' + responsedata.data.values.length)
+        console.log('Pagesize:' + pageSize);
+        console.log('curPage:' + curPage);
+        console.log('For Each Repo:')
+      }
+  
+      console.log('=========Repo Commit Analysis==========');
+      console.log('Repo Count: ' + responsedata.data.values.length);
       for (var i = 0, len = responsedata.data.values.length; i < len; i++) {
-        console.log('=========Repo Start: ' +  responsedata.data.values[i].full_name +  '=============');
+        console.log(responsedata.data.values[i].full_name);
         //console.log(responsedata.data.values[i].links.commits.href);
         //commit example filter: https://developer.atlassian.com/bitbucket/api/2/reference/resource/repositories/%7Busername%7D/%7Brepo_slug%7D/filehistory/%7Bnode%7D/%7Bpath%7D?_ga=2.43500256.414019426.1535331392-1143805731.1535119351
         //another filter example: https://community.atlassian.com/t5/Bitbucket-questions/bitbucket-api-query-all-commits/qaq-p/651345
@@ -108,30 +115,35 @@ async function getBBCloudContributorCount (config) {
           var commitResponsedata = await getDataFromBBAPI(nextCommit, config);
           if(commitResponsedata.data.next)
           {
-            console.log('   Next  page - commit: ' + commitResponsedata.data.next);
+            if(debug > 0) console.log('   Next  page - commit: ' + commitResponsedata.data.next);
             nextCommit= commitResponsedata.data.next
           }
           else
           {
-            console.log('NO NEXT PAGE - COMMIT');
+            if(debug > 0) console.log('NO NEXT PAGE - COMMIT');
             nextCommit= "";
           }
           var pageCommitSize = commitResponsedata.data.pagelen;
-          console.log('     pagelen:' + pageCommitSize);
-          console.log('   Number of commits against repo: ' + commitResponsedata.data.values.length)
-
+          if(debug > 0)
+          {
+            console.log('     pagelen:' + pageCommitSize);
+            console.log('   Number of commits against repo: ' + commitResponsedata.data.values.length)
+          }
           for (var j = 0, len2 = commitResponsedata.data.values.length; j < len2; j++) 
           {
             //console.log(commitResponsedata.data); //SHOW JSON object
-    
+            if(arrContributorNames.indexOf(commitResponsedata.data.values[j].author.raw)<0)
+            {
+              arrContributorNames.push(commitResponsedata.data.values[j].author.raw);
+            }
             if(debug > 0)
             {
               //console.log('     ----Record: ' + j + '------'
               var rawSummary= commitResponsedata.data.values[j].summary.raw;
               var summarytxt = "";
-              if (rawSummary.length >30)
+              if (rawSummary.length >40)
               {
-                summarytxt = '\tSummary: ' + rawSummary.substring(0,80).replace('\n','').replace('\r','').replace('\t','');
+                summarytxt = '\tSummary: ' + rawSummary.substring(0,40).replace('\n','').replace('\r','').replace('\t','');
               }
               else
               {
@@ -139,103 +151,35 @@ async function getBBCloudContributorCount (config) {
               }
 
               console.log('     repo: ' + commitResponsedata.data.values[j].repository.name +'\tauth: ' + commitResponsedata.data.values[j].author.raw + ' type: ' + commitResponsedata.data.values[j].author.type + '\tdate: ' + commitResponsedata.data.values[j].date + summarytxt);
-              if(cutOffDate>=commitResponsedata.data.values[j].date)
-              {
-                console.log('            ****Date does not meet criteria****');
-              }
+              //if(cutOffDate>=commitResponsedata.data.values[j].date)
+              //{
+              //  console.log('            ****Date does not meet criteria****');
+              //}
             }
           }
-          console.log('----Commit Page END------');
+          if(debug > 0) console.log('----Commit Page END------');
         }
-        console.log('----Repo Page END------');
+        if(debug > 0) console.log('----Repo Page END------');
       }
     }
-    if(debug > 0)
+  
+    console.log('\n=====TO DO LIST FOR THIS SCRIPT====');
+    console.log('TODO: Filter on cutoffdate');
+    console.log('TODO: Filter on private');
+    console.log('RESEARCH TO DO: what about filtering or doing pull requests like this: https://bitbucket.org/snykdemo-sm/2.0/repositories/main/repo/pullrequests?q=source.repository.full_name+%21%3D+%22main%2Frepo%22+AND+state+%3D+%22OPEN%22+AND+reviewers.username+%3D+%22snykdemo-sm%22+AND+destination.branch.name+%3D+%22master%22')
+      
+    console.log('\n=====Unique Names====');
+    console.log('Count:' + arrContributorNames.length);
+    for(var nameCounter=0; nameCounter<arrContributorNames.length; nameCounter++)
     {
-      console.log('TODO: Paginating repos');
-      console.log('TODO: Paginating commits');
-      console.log('TODO: Filter on cutoffdate');
-      console.log('TODO: Filter on private');
-      console.log('RESEARCH TO DO: what about filtering or doing pull requests like this: https://bitbucket.org/snykdemo-sm/2.0/repositories/main/repo/pullrequests?q=source.repository.full_name+%21%3D+%22main%2Frepo%22+AND+state+%3D+%22OPEN%22+AND+reviewers.username+%3D+%22snykdemo-sm%22+AND+destination.branch.name+%3D+%22master%22')
+      console.log(arrContributorNames[nameCounter]);
     }
-    //MAJOR TO DO: YOU STILL NEED TO HANDLE PAGING --Look at NEXT and start this whole thing over again!
-    //    probably move this logic out of function, passing target url while there's a "next" defined
-    //probably   responsedata.data.next
+  
+    //Look here for date handling problem: https://community.atlassian.com/t5/Bitbucket-questions/Bitbucket-cloud-api-2-0-querying-commits-how-to-filter-on-date/qaq-p/877317#M31927
     return repoData;
   }
 
-  async function DELETEMEgetBBCloudContributorCountV2 (config) {
-
-    //works better - filtered: curl -l --user userid:yourapppassword https://api.bitbucket.org/2.0/repositories/
   
-    // return new Promise((resolve, reject) => {
-      var targetUrl = config.apiurl+ "repositories/" + config.username +'/';
-      var repoData = [];
-      console.log('Target Url:' + targetUrl);
-      var responsedata = await getDataFromBBAPI(targetUrl, config);
-      //RESPONSE: { data: { pagelen: 10, values: [ [Object], [Object] ], page: 1, size: 2 , next},
-  
-      //console.log(data);
-      //console.log('Data Retrieved');
-      //repoData.push(...data.data); //?? What is ...
-      var pageSize = responsedata.data.size;
-      var curPage = responsedata.data.page;
-      console.log('=========================For Each Repo============================')
-      for (var i = 0, len = responsedata.data.values.length; i < len; i++) {
-        //console.log(responsedata.data.values[i]);
-        console.log('=========Repo Start: ' +  responsedata.data.values[i].full_name +  '=============');
-        //YOU NEED TO PASS CUTOFF DATE AS A FILTER AND THINK OF PAGINATION OF COMMITS
-        console.log(responsedata.data.values[i].links.commits.href);
-        //var commitUrl=responsedata.data.values[i].links.commits.href + "?created_on>" + cutOffDate;// + "T:00:00:00";
-        //FILTER EXAMPLE: https://blog.bitbucket.org/2018/06/15/new-bitbucket-cloud-v2-apis/
-        //COMMIT; https://developer.atlassian.com/bitbucket/api/2/reference/resource/repositories/%7Busername%7D/%7Brepo_slug%7D/filehistory/%7Bnode%7D/%7Bpath%7D?_ga=2.43500256.414019426.1535331392-1143805731.1535119351
-        var commitUrl=targetUrl + responsedata.data.values[i].name + "/pullrequests?q=date>2018-01-01" //+ cutOffDate;// + "T:00:00:00";
-        var commitResponsedata = await getDataFromBBAPI(commitUrl, config);
-        console.log(commitResponsedata);
-        console.log('    ----COMMIT RECORD Start------');
-        /*for (var j = 0, len2 = commitResponsedata.data.values.length; j < len2; j++) 
-        {
-          
-          if(debug > 0)
-          {
-            console.log('     ----Record: ' + j + '------');
-          //console.log(commitResponsedata.data.values[i]);
-            console.log('     ' + commitResponsedata.data.values[j].repository.name);
-            console.log('     ' + commitResponsedata.data.values[j].author.raw + ' type: ' + commitResponsedata.data.values[j].author.type);
-            console.log('     ' + commitResponsedata.data.values[j].date);
-  
-            var rawSummary= commitResponsedata.data.values[j].summary.raw
-            if (rawSummary.length >30)
-            {
-              console.log('     ' + rawSummary.substring(0,80).replace('\n','').replace('\r',''));
-            }
-            else
-            {
-              console.log('     ' + rawSummary.replace('\n','').replace('\r',''));
-            }
-            //console.log('     ' +commitResponsedata.data.values[i].message);
-  
-            console.log('----COMMIT RECORD END------');
-          }
-        }*/
-        console.log('----Repo END------');
-      }
-      if(debug > 0)
-      {
-        console.log('TODO: Paginating repos');
-        console.log('TODO: Paginating commits');
-        console.log('TODO: Filter on cutoffdate');
-        console.log('TODO: Filter on private');
-        console.log('RESEARCH TO DO: what about filtering or doing pull requests like this: https://bitbucket.org/snykdemo-sm/2.0/repositories/main/repo/pullrequests?q=source.repository.full_name+%21%3D+%22main%2Frepo%22+AND+state+%3D+%22OPEN%22+AND+reviewers.username+%3D+%22snykdemo-sm%22+AND+destination.branch.name+%3D+%22master%22')
-        console.log('=========================================================');
-        console.log('=====THIS PROGRAM IS WORK IN PROGRESS - DO NOT USE!======');
-        console.log('=========================================================');
-      }
-      //MAJOR TO DO: YOU STILL NEED TO HANDLE PAGING --Look at NEXT and start this whole thing over again!
-      //    probably move this logic out of function, passing target url while there's a "next" defined
-      //probably   responsedata.data.next
-      return repoData;
-    }
 
 program
   .version('1.0.0')
