@@ -76,128 +76,135 @@ async function getBBCloudContributorCount (config) {
     var numUniquePublicRepos=0
     var numCommits=0;
     nextUrl=targetUrl; //populate first target URL
-
-    while(nextUrl!="") //BB uses pages in API, iterate until all pages processed for repositories
+    try
     {
-      console.log(nextUrl);
-      var responsedata = await getDataFromBBAPI(nextUrl, config);
-      var pageSize = responsedata.data.size;
-      var curPage = responsedata.data.page;
-      
-      if(responsedata.data.next)
-      {
-          if(debug == true) console.log('Next Page - REPO: ' + responsedata.data.next);
-          nextUrl=responsedata.data.next;
-      }
-      else
-      {
-        if(debug == true) console.log('NO NEXT PAGE - REPO');
-        nextUrl="";
-      }
-      if(debug == true) 
-      {
-        console.log('Number of repos on page: ' + responsedata.data.values.length)
-        console.log('Pagesize:' + pageSize);
-        console.log('curPage:' + curPage);
-        console.log('For Each Repo:')
-      }
-  
-      console.log('=========Repo Commit Analysis==========');
-      
-      for (var i = 0, len = responsedata.data.values.length; i < len; i++) {
-        
-        var is_private = responsedata.data.values[i].is_private; //check if repo is private, by default only these are analyzed
-        numUniqueRepos++;
 
-        if(is_private==true)
+      while(nextUrl!="") //BB uses pages in API, iterate until all pages processed for repositories
+      {
+        console.log(nextUrl);
+        var responsedata = await getDataFromBBAPI(nextUrl, config);
+        var pageSize = responsedata.data.size;
+        var curPage = responsedata.data.page;
+        
+        if(responsedata.data.next)
         {
-          console.log(responsedata.data.values[i].full_name + '\t' + ' (Private)');
+            if(debug == true) console.log('Next Page - REPO: ' + responsedata.data.next);
+            nextUrl=responsedata.data.next;
         }
         else
         {
-          numUniquePublicRepos++;
-          if(includePublicRepos==false) console.log(responsedata.data.values[i].full_name + '\t' +  ' (Public - Skipping)');
-          else
-          {
-            console.log(responsedata.data.values[i].full_name + '\t' +  ' (Public)');
-          }
+          if(debug == true) console.log('NO NEXT PAGE - REPO');
+          nextUrl="";
         }
-       
-        var commitUrl=responsedata.data.values[i].links.commits.href;// + "?q=date+%3E+" + cutOffDate;
-        var nextCommit=commitUrl;
-        var numRepoCommits=0;
-        //BB uses pages in API, iterate until all pages processed for commits, but only looking at private repos unless overridden
-        while(nextCommit!="" && (is_private==true || includePublicRepos==true)) 
+        if(debug == true) 
         {
-          var commitResponsedata = await getDataFromBBAPI(nextCommit, config);
-          if(commitResponsedata.data.next)
+          console.log('Number of repos on page: ' + responsedata.data.values.length)
+          console.log('Pagesize:' + pageSize);
+          console.log('curPage:' + curPage);
+          console.log('For Each Repo:')
+        }
+    
+        console.log('=========Repo Commit Analysis==========');
+        
+        for (var i = 0, len = responsedata.data.values.length; i < len; i++) {
+          
+          var is_private = responsedata.data.values[i].is_private; //check if repo is private, by default only these are analyzed
+          numUniqueRepos++;
+
+          if(is_private==true)
           {
-            if(debug == true) console.log('   Next  page - commit: ' + commitResponsedata.data.next);
-            nextCommit= commitResponsedata.data.next
+            console.log(responsedata.data.values[i].full_name + '\t' + ' (Private)');
           }
           else
           {
-            if(debug == true) console.log('NO NEXT PAGE - COMMIT');
-            nextCommit= "";
-          }
-          var pageCommitSize = commitResponsedata.data.pagelen;
-          if(debug == true)
-          {
-            console.log('     pagelen:' + pageCommitSize);
-            console.log('   Number of commits against repo on page: ' + commitResponsedata.data.values.length)
-          }
-          for (var j = 0, len2 = commitResponsedata.data.values.length; j < len2; j++) 
-          {
-            //only record name if it's after cuttoffdate.
-            if(commitResponsedata.data.values[j].date >= cutOffDate)
+            numUniquePublicRepos++;
+            if(includePublicRepos==false) console.log(responsedata.data.values[i].full_name + '\t' +  ' (Public - Skipping)');
+            else
             {
-              numCommits++;
-              numRepoCommits++;
-              if(arrContributorNames.indexOf(commitResponsedata.data.values[j].author.raw)<0)
-              {
-                arrContributorNames.push(commitResponsedata.data.values[j].author.raw);
-              }
-            } //else, once the dates are found not to be in range, you might be able to abandon commits loop and skip all other commit pages. Research further.
-            else //skip future commit pages
-            {
-              nextCommit="";
-              if(debug == true) console.log('   ***Commits date exceed cuttoff, terminating commit processing for repo');
-              break;
+              console.log(responsedata.data.values[i].full_name + '\t' +  ' (Public)');
             }
-
-            if(debugCommitDetail == true)
+          }
+        
+          var commitUrl=responsedata.data.values[i].links.commits.href;// + "?q=date+%3E+" + cutOffDate;
+          var nextCommit=commitUrl;
+          var numRepoCommits=0;
+          //BB uses pages in API, iterate until all pages processed for commits, but only looking at private repos unless overridden
+          while(nextCommit!="" && (is_private==true || includePublicRepos==true)) 
+          {
+            var commitResponsedata = await getDataFromBBAPI(nextCommit, config);
+            if(commitResponsedata.data.next)
             {
-              var rawSummary= commitResponsedata.data.values[j].summary.raw;
-              var summarytxt = "";
-              if (rawSummary.length >40)
+              if(debug == true) console.log('   Next  page - commit: ' + commitResponsedata.data.next);
+              nextCommit= commitResponsedata.data.next
+            }
+            else
+            {
+              if(debug == true) console.log('NO NEXT PAGE - COMMIT');
+              nextCommit= "";
+            }
+            var pageCommitSize = commitResponsedata.data.pagelen;
+            if(debug == true)
+            {
+              console.log('     pagelen:' + pageCommitSize);
+              console.log('   Number of commits against repo on page: ' + commitResponsedata.data.values.length)
+            }
+            for (var j = 0, len2 = commitResponsedata.data.values.length; j < len2; j++) 
+            {
+              //only record name if it's after cuttoffdate.
+              if(commitResponsedata.data.values[j].date >= cutOffDate)
               {
-                summarytxt = '\tSummary: ' + rawSummary.substring(0,40).replace('\n','').replace('\r','').replace('\t','');
-              }
-              else
+                numCommits++;
+                numRepoCommits++;
+                if(arrContributorNames.indexOf(commitResponsedata.data.values[j].author.raw)<0)
+                {
+                  arrContributorNames.push(commitResponsedata.data.values[j].author.raw);
+                }
+              } //else, once the dates are found not to be in range, you might be able to abandon commits loop and skip all other commit pages. Research further.
+              else //skip future commit pages
               {
-                summarytxt = '\tSummary: ' + rawSummary.replace('\n','').replace('\r','').replace('\t','');
+                nextCommit="";
+                if(debug == true) console.log('   ***Commits date exceed cuttoff, terminating commit processing for repo');
+                break;
               }
 
-              console.log('     repo: ' + commitResponsedata.data.values[j].repository.name +'\tauth: ' + commitResponsedata.data.values[j].author.raw + ' type: ' + commitResponsedata.data.values[j].author.type + '\tdate: ' + commitResponsedata.data.values[j].date + summarytxt);
-              if(debug == true) 
+              if(debugCommitDetail == true)
               {
-                if(cutOffDate>=commitResponsedata.data.values[j].date)
+                var rawSummary= commitResponsedata.data.values[j].summary.raw;
+                var summarytxt = "";
+                if (rawSummary.length >40)
                 {
-                  console.log('            ****Date does not meet criteria****');
+                  summarytxt = '\tSummary: ' + rawSummary.substring(0,40).replace('\n','').replace('\r','').replace('\t','');
+                }
+                else
+                {
+                  summarytxt = '\tSummary: ' + rawSummary.replace('\n','').replace('\r','').replace('\t','');
+                }
+
+                console.log('     repo: ' + commitResponsedata.data.values[j].repository.name +'\tauth: ' + commitResponsedata.data.values[j].author.raw + ' type: ' + commitResponsedata.data.values[j].author.type + '\tdate: ' + commitResponsedata.data.values[j].date + summarytxt);
+                if(debug == true) 
+                {
+                  if(cutOffDate>=commitResponsedata.data.values[j].date)
+                  {
+                    console.log('            ****Date does not meet criteria****');
+                  }
                 }
               }
             }
+            //if(debug == true) console.log('----Commit Page END------');
           }
-          //if(debug == true) console.log('----Commit Page END------');
-        }
-        if(debug == true)
-        { 
-          console.log('     Commits analyzed for repo: ' + numRepoCommits);
-          console.log('----Repo Page END------');
+          if(debug == true)
+          { 
+            console.log('     Commits analyzed for repo: ' + numRepoCommits);
+            console.log('----Repo Page END------');
+          }
         }
       }
+    } 
+    catch (err) 
+    {
+        console.error("CRITICAL FAILURE: Failed to process repo data\n");
+        console.error(err);
     }
-     
     console.log('\nTotal Repo Count: ' + numUniqueRepos);
     console.log('Total Private Repo Count: ' + (numUniqueRepos-numUniquePublicRepos));
     console.log('Total Public Repo Count: ' + numUniquePublicRepos);
