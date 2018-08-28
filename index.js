@@ -97,7 +97,7 @@ async function getBBCloudContributorCount (config) {
       }
       if(debug == true) 
       {
-        console.log('Number of repos: ' + responsedata.data.values.length)
+        console.log('Number of repos on page: ' + responsedata.data.values.length)
         console.log('Pagesize:' + pageSize);
         console.log('curPage:' + curPage);
         console.log('For Each Repo:')
@@ -143,7 +143,7 @@ async function getBBCloudContributorCount (config) {
           if(debug == true)
           {
             console.log('     pagelen:' + pageCommitSize);
-            console.log('   Number of commits against repo: ' + commitResponsedata.data.values.length)
+            console.log('   Number of commits against repo on page: ' + commitResponsedata.data.values.length)
           }
           for (var j = 0, len2 = commitResponsedata.data.values.length; j < len2; j++) 
           {
@@ -154,7 +154,14 @@ async function getBBCloudContributorCount (config) {
               {
                 arrContributorNames.push(commitResponsedata.data.values[j].author.raw);
               }
+            } //else, once the dates are found not to be in range, you might be able to abandon commits loop and skip all other commit pages. Research further.
+            else //skip future commit pages
+            {
+              nextCommit="";
+              if(debug == true) console.log('Commits date exceed cuttoff, abandoning commit processing');
+              break;
             }
+
             if(debugCommitDetail == true)
             {
               var rawSummary= commitResponsedata.data.values[j].summary.raw;
@@ -183,18 +190,17 @@ async function getBBCloudContributorCount (config) {
         if(debug == true) console.log('----Repo Page END------');
       }
     }
-  
-    console.log('\n=====TO DO LIST FOR THIS SCRIPT====');
-    console.log('TODO: Filter on cutoffdate');
-    console.log('RESEARCH TO DO: what about filtering or doing pull requests like this: https://bitbucket.org/snykdemo-sm/2.0/repositories/main/repo/pullrequests?q=source.repository.full_name+%21%3D+%22main%2Frepo%22+AND+state+%3D+%22OPEN%22+AND+reviewers.username+%3D+%22snykdemo-sm%22+AND+destination.branch.name+%3D+%22master%22')
-      
+     
     console.log('\n=====Unique Names====');
     console.log('Unique User Count:' + arrContributorNames.length);
     for(var nameCounter=0; nameCounter<arrContributorNames.length; nameCounter++)
     {
       console.log(arrContributorNames[nameCounter]);
     }
-  
+    console.log('\n=====Script Settings====');
+    console.log('debug: ' + debug)
+    console.log('debugCommitDetail: ' + debugCommitDetail)
+    console.log('includePublicRepos: ' + includePublicRepos)
     return repoData;
   }
 
@@ -233,7 +239,6 @@ program
         })
       })
       .catch((error)=>{
-        console.log('Bad code, be ashamed');
         console.error(error);
       })
       
