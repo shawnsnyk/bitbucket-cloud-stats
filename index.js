@@ -74,6 +74,8 @@ async function getBBCloudContributorCount (config) {
     var nextUrl = "";
     var arrContributorNames=[];
     var targetUrl = config.apiurl+ "repositories/" + config.username +'/';
+    var numUniqueRepos=0
+    var numUniquePublicRepos=0
     nextUrl=targetUrl; //populate first target URL
 
     while(nextUrl!="") //BB uses pages in API, iterate until all pages processed for repositories
@@ -102,17 +104,19 @@ async function getBBCloudContributorCount (config) {
       }
   
       console.log('=========Repo Commit Analysis==========');
-      console.log('Repo Count: ' + responsedata.data.values.length);
+      
       for (var i = 0, len = responsedata.data.values.length; i < len; i++) {
         
         var is_private = responsedata.data.values[i].is_private; //check if repo is private, by default only these are analyzed
-        
+        numUniqueRepos++;
+
         if(is_private==true)
         {
           console.log(responsedata.data.values[i].full_name + '\t' + ' (Private)');
         }
         else
         {
+          numUniquePublicRepos++;
           if(includePublicRepos==false) console.log(responsedata.data.values[i].full_name + '\t' +  ' (Public - Skipping)');
           else
           {
@@ -156,7 +160,7 @@ async function getBBCloudContributorCount (config) {
             else //skip future commit pages
             {
               nextCommit="";
-              if(debug == true) console.log('Commits date exceed cuttoff, abandoning commit processing');
+              if(debug == true) console.log('   ***Commits date exceed cuttoff, abandoning commit processing');
               break;
             }
 
@@ -189,6 +193,10 @@ async function getBBCloudContributorCount (config) {
       }
     }
      
+    console.log('\nTotal Repo Count: ' + numUniqueRepos);
+    console.log('Total Private Repo Count: ' + (numUniqueRepos-numUniquePublicRepos));
+    console.log('Total Public Repo Count: ' + numUniquePublicRepos);
+
     console.log('\n=====Unique Names====');
     console.log('Unique User Count:' + arrContributorNames.length);
     for(var nameCounter=0; nameCounter<arrContributorNames.length; nameCounter++)
