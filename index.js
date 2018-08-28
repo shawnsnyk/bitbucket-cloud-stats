@@ -68,65 +68,87 @@ const getDataFromBBAPI = (url, config) => {
 }
 
 
-
 async function getBBCloudContributorCount (config) {
     var targetUrl = config.apiurl+ "repositories/" + config.username +'/';
     var repoData = [];
-    var responsedata = await getDataFromBBAPI(targetUrl, config);
-    //RESPONSE: { data: { pagelen: 10, values: [ [Object], [Object] ], page: 1, size: 2 , next},
-    var pageSize = responsedata.data.size;
-    var curPage = responsedata.data.page;
-    if(responsedata.data.next)
+    var nextUrl = "";
+
+    nextUrl=targetUrl; //populate first target URL
+
+    while(nextUrl!="")
     {
-        console.log('Next page - repo: ' + responsedata.data.next)
-    }
-    console.log('Number of repos: ' + responsedata.data.values.length)
-    console.log('Pagesize:' + pageSize);
-    console.log('curPage:' + curPage);
-    console.log('For Each Repo:')
-    for (var i = 0, len = responsedata.data.values.length; i < len; i++) {
-      console.log('=========Repo Start: ' +  responsedata.data.values[i].full_name +  '=============');
-      //console.log(responsedata.data.values[i].links.commits.href);
-      //commit example filter: https://developer.atlassian.com/bitbucket/api/2/reference/resource/repositories/%7Busername%7D/%7Brepo_slug%7D/filehistory/%7Bnode%7D/%7Bpath%7D?_ga=2.43500256.414019426.1535331392-1143805731.1535119351
-      //another filter example: https://community.atlassian.com/t5/Bitbucket-questions/bitbucket-api-query-all-commits/qaq-p/651345
-      var commitUrl=responsedata.data.values[i].links.commits.href ; //+ "?q=value.date+%3E+" + cutOffDate;
-      var commitResponsedata = await getDataFromBBAPI(commitUrl, config);
-      console.log('----COMMIT RECORD Start------');
-      for (var j = 0, len2 = commitResponsedata.data.values.length; j < len2; j++) 
+      console.log(nextUrl);
+      var responsedata = await getDataFromBBAPI(nextUrl, config);
+      //RESPONSE: { data: { pagelen: 10, values: [ [Object], [Object] ], page: 1, size: 2 , next},
+      var pageSize = responsedata.data.size;
+      var curPage = responsedata.data.page;
+      if(responsedata.data.next)
       {
-        //console.log(commitResponsedata.data); //SHOW JSON object
-        var pageCommitSize = commitResponsedata.data.pagelen;
-        console.log('     pagelen:' + pageCommitSize);
-
-        if(commitResponsedata.data.next)
+          console.log('Next Page - REPO: ' + responsedata.data.next);
+          nextUrl=responsedata.data.next;
+      }
+      else
+      {
+        console.log('NO NEXT PAGE - REPO');
+        nextUrl="";
+      }
+      console.log('Number of repos: ' + responsedata.data.values.length)
+      console.log('Pagesize:' + pageSize);
+      console.log('curPage:' + curPage);
+      console.log('For Each Repo:')
+      for (var i = 0, len = responsedata.data.values.length; i < len; i++) {
+        console.log('=========Repo Start: ' +  responsedata.data.values[i].full_name +  '=============');
+        //console.log(responsedata.data.values[i].links.commits.href);
+        //commit example filter: https://developer.atlassian.com/bitbucket/api/2/reference/resource/repositories/%7Busername%7D/%7Brepo_slug%7D/filehistory/%7Bnode%7D/%7Bpath%7D?_ga=2.43500256.414019426.1535331392-1143805731.1535119351
+        //another filter example: https://community.atlassian.com/t5/Bitbucket-questions/bitbucket-api-query-all-commits/qaq-p/651345
+        var commitUrl=responsedata.data.values[i].links.commits.href + "?q=date+%3E+" + cutOffDate;
+        var nextCommit=commitUrl;
+        while(nextCommit!="")
         {
-           console.log('Next page - repo: ' + commitResponsedata.data.next)
-        }
-        console.log('Number of commits against repo: ' + commitResponsedata.data.values.length)
-        if(debug > 0)
-        {
-          console.log('     ----Record: ' + j + '------');
-          console.log('     repo: ' + commitResponsedata.data.values[j].repository.name);
-          console.log('     auth: ' + commitResponsedata.data.values[j].author.raw + ' type: ' + commitResponsedata.data.values[j].author.type);
-          console.log('     date: ' + commitResponsedata.data.values[j].date);
-          if(cutOffDate>=commitResponsedata.data.values[j].date)
+          var commitResponsedata = await getDataFromBBAPI(nextCommit, config);
+          if(commitResponsedata.data.next)
           {
-            console.log('            ****Date does not meet criteria****');
-          }
-
-          var rawSummary= commitResponsedata.data.values[j].summary.raw
-          if (rawSummary.length >30)
-          {
-            console.log('     ' + rawSummary.substring(0,80).replace('\n','').replace('\r',''));
+            console.log('   Next  page - commit: ' + commitResponsedata.data.next);
+            nextCommit= commitResponsedata.data.next
           }
           else
           {
-            console.log('     ' + rawSummary.replace('\n','').replace('\r',''));
+            console.log('NO NEXT PAGE - COMMIT');
+            nextCommit= "";
           }
-          console.log('----COMMIT RECORD END------');
+          var pageCommitSize = commitResponsedata.data.pagelen;
+          console.log('     pagelen:' + pageCommitSize);
+          console.log('   Number of commits against repo: ' + commitResponsedata.data.values.length)
+
+          for (var j = 0, len2 = commitResponsedata.data.values.length; j < len2; j++) 
+          {
+            //console.log(commitResponsedata.data); //SHOW JSON object
+    
+            if(debug > 0)
+            {
+              //console.log('     ----Record: ' + j + '------'
+              var rawSummary= commitResponsedata.data.values[j].summary.raw;
+              var summarytxt = "";
+              if (rawSummary.length >30)
+              {
+                summarytxt = '\tSummary: ' + rawSummary.substring(0,80).replace('\n','').replace('\r','').replace('\t','');
+              }
+              else
+              {
+                summarytxt = '\tSummary: ' + rawSummary.replace('\n','').replace('\r','').replace('\t','');
+              }
+
+              console.log('     repo: ' + commitResponsedata.data.values[j].repository.name +'\tauth: ' + commitResponsedata.data.values[j].author.raw + ' type: ' + commitResponsedata.data.values[j].author.type + '\tdate: ' + commitResponsedata.data.values[j].date + summarytxt);
+              if(cutOffDate>=commitResponsedata.data.values[j].date)
+              {
+                console.log('            ****Date does not meet criteria****');
+              }
+            }
+          }
+          console.log('----Commit Page END------');
         }
+        console.log('----Repo Page END------');
       }
-      console.log('----Repo END------');
     }
     if(debug > 0)
     {
@@ -170,7 +192,7 @@ async function getBBCloudContributorCount (config) {
         var commitUrl=targetUrl + responsedata.data.values[i].name + "/pullrequests?q=date>2018-01-01" //+ cutOffDate;// + "T:00:00:00";
         var commitResponsedata = await getDataFromBBAPI(commitUrl, config);
         console.log(commitResponsedata);
-        console.log('----COMMIT RECORD Start------');
+        console.log('    ----COMMIT RECORD Start------');
         /*for (var j = 0, len2 = commitResponsedata.data.values.length; j < len2; j++) 
         {
           
