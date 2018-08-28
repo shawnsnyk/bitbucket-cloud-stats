@@ -144,11 +144,11 @@ async function getBBCloudContributorCount (config) {
     console.log('Total Public Repo Count: ' + numUniquePublicRepos);
      
     console.log('\n=====Unique Names====');
-    console.log('Unique User Count:' + arrContributorNames.length);
     for(var nameCounter=0; nameCounter<arrContributorNames.length; nameCounter++)
     {
       console.log(arrContributorNames[nameCounter]);
     }
+    console.log('\nUnique User Count:' + arrContributorNames.length);
     console.log('\n=====Script Settings====');
     console.log('includePublicRepos: ' + includePublicRepos)
     return repoData;
@@ -158,7 +158,7 @@ async function getBBCloudContributorCount (config) {
 
 program
   .version('1.0.0')
-  .description('Snyk\'s BitBucket contributors counter (active in the last 3 months)')
+  .description('Snyk\'s BitBucket Cloud contributors counter (active in the last 3 months)')
   .usage('<command> [options] \n options: -t <BBAppPassword> -u <BBUid> -r <BBRepoUserName>')
 
   program
