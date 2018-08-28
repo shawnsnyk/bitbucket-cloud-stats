@@ -76,6 +76,7 @@ async function getBBCloudContributorCount (config) {
     var targetUrl = config.apiurl+ "repositories/" + config.username +'/';
     var numUniqueRepos=0
     var numUniquePublicRepos=0
+    var numCommits=0;
     nextUrl=targetUrl; //populate first target URL
 
     while(nextUrl!="") //BB uses pages in API, iterate until all pages processed for repositories
@@ -126,7 +127,7 @@ async function getBBCloudContributorCount (config) {
        
         var commitUrl=responsedata.data.values[i].links.commits.href + "?q=date+%3E+" + cutOffDate;
         var nextCommit=commitUrl;
-        
+        var numRepoCommits=0;
         //BB usese pages in API, iterate until all pages processed for commits, but only looking at private repos unless overridden
         while(nextCommit!="" && (is_private==true || includePublicRepos==true)) 
         {
@@ -152,6 +153,8 @@ async function getBBCloudContributorCount (config) {
             //only record name if it's after cuttoffdate.
             if(commitResponsedata.data.values[j].date >= cutOffDate)
             {
+              numCommits++;
+              numRepoCommits++;
               if(arrContributorNames.indexOf(commitResponsedata.data.values[j].author.raw)<0)
               {
                 arrContributorNames.push(commitResponsedata.data.values[j].author.raw);
@@ -160,7 +163,7 @@ async function getBBCloudContributorCount (config) {
             else //skip future commit pages
             {
               nextCommit="";
-              if(debug == true) console.log('   ***Commits date exceed cuttoff, abandoning commit processing');
+              if(debug == true) console.log('   ***Commits date exceed cuttoff, terminating commit processing for repo');
               break;
             }
 
@@ -189,13 +192,18 @@ async function getBBCloudContributorCount (config) {
           }
           //if(debug == true) console.log('----Commit Page END------');
         }
-        if(debug == true) console.log('----Repo Page END------');
+        if(debug == true)
+        { 
+          console.log('     Commits analyzed for repo: ' + numRepoCommits);
+          console.log('----Repo Page END------');
+        }
       }
     }
      
     console.log('\nTotal Repo Count: ' + numUniqueRepos);
     console.log('Total Private Repo Count: ' + (numUniqueRepos-numUniquePublicRepos));
     console.log('Total Public Repo Count: ' + numUniquePublicRepos);
+    console.log('Total Commits Analyzed (Before Cuttoff) Count: ' + numCommits);
 
     console.log('\n=====Unique Names====');
     for(var nameCounter=0; nameCounter<arrContributorNames.length; nameCounter++)
