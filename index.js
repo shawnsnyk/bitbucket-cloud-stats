@@ -8,8 +8,6 @@
         //Look here for date handling problem if solution is available: https://community.atlassian.com/t5/Bitbucket-questions/Bitbucket-cloud-api-2-0-querying-commits-how-to-filter-on-date/qaq-p/877317#M31927
 */
 const INTER_CALLS_DELAY = 1000;
-const NB_RECORDS_PER_PAGE = 100; //max GL API
-const DEFAULT_BitBucket_COM_API = 'https://bitbucket.org/site/'; //   /2.0/repositories/shawnsnyk/bitbucket-cloud-stats/
 
 const NBOFDAYS = 90;
 var program = require('commander');
