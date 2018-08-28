@@ -109,7 +109,7 @@ async function getBBCloudContributorCount (config) {
                 var commitUrl=responsedata.data.values[i].links.commits.href + "?q=date+%3E+" + cutOffDate;
                 var nextCommit=commitUrl;
                 var numRepoCommits=0;
-                //BB usese pages in API, iterate until all pages processed for commits, but only looking at private repos unless overridden
+                //BB uses pages in API, iterate until all pages processed for commits, but only looking at private repos unless overridden
                 while(nextCommit!="" && (is_private==true || includePublicRepos==true)) 
                 {
                     var commitResponsedata = await getDataFromBBAPI(nextCommit, config);
