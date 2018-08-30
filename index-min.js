@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /*
         =========================================================');
-        =====THIS PROGRAM IS WORK IN PROGRESS - DO NOT USE!======');
+        =====V1.0 Bitbucket Cloud - Developer Counter - last 90days======');
         =========================================================');
+
 */
 const INTER_CALLS_DELAY = 1000;
 

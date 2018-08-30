@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
         =========================================================');
-        =====THIS PROGRAM IS WORK IN PROGRESS - DO NOT USE!======');
+        =====V1.0 Bitbucket Cloud - Developer Counter - last 90days======');
         =========================================================');
 
 */
@@ -13,8 +13,8 @@ const chalk = require('chalk'); //string style
 const figlet = require('figlet'); //starwars large text
 const axios = require('axios'); //HTTP agent
 const moment = require('moment'); //library for processing/ formatting/parsing dates
-var debug=false; //See processing for debug
-var debugCommitDetail=false; //See processing for debug
+var debug=true; //See processing for debug
+var debugCommitDetail=true; //See processing for debug
 var includePublicRepos = true; //true of false to include public repo commits in analysis
 
 var cutOffDate;
