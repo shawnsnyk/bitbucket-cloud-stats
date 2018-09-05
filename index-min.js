@@ -13,6 +13,7 @@ const chalk = require('chalk'); //string style
 const figlet = require('figlet'); //starwars large text
 const axios = require('axios'); //HTTP agent
 const moment = require('moment'); //library for processing/ formatting/parsing dates
+//var sleep = require('lodash.throttle'); //require('sleep-promise');
 var sleep = require('sleep-promise');
 var includePublicRepos = true; //true of false to include public repo commits in analysis
 
@@ -21,7 +22,7 @@ var cutOffDate;
 //Throttling Handler for BitBucket Cloud - See https://confluence.atlassian.com/bitbucket/rate-limits-668173227.html
 var cutOffRepoApi=995; //1000 is limit, adding small buffer
 var cutOffCommitApi=990; //1000 is limit, adding small buffer
-var delayWhenThresholdMet = 65; //minutes - add 5 minute buffer
+var delayWhenThresholdMet = (3600 + (60*5))*1000; //minutes - add 5 minute buffer
 
 
 //API call counter
@@ -73,9 +74,7 @@ const getDataFromBBAPI = (url, config) => {
   });
 }
 
-const checkCommitThrottle = () => {
-    return new Promise((resolve,reject) => {
-
+const checkCommitThrottle = async() => {
         //Stub function for possible wait logic
         //var cutOffRepoApi=995; //1000 is limit, adding small buffer
         //var cutOffCommitApi=990; //1000 is limit, adding small buffer
@@ -83,16 +82,13 @@ const checkCommitThrottle = () => {
         console.log('check sleepy:' + curCommitApiCalls + '/ ' + cutOffCommitApi);
         if(cutOffRepoApi == curRepoApiCalls || cutOffCommitApi == curCommitApiCalls)
         {
-            console.log('sleepy');
             //wait  delayWhenThresholdMet
-            sleep(10000);
-                console.log("---------Approaching Bitbucket Cloud Api call limit. Sleeping for " + delayWhenThresholdMet + "minutes");
-            
-            
+           //CHEANGE THE CODE TO ONLY ALLOW COMMIT CHECKS 1000 times in 60 min _.throttle(func, [wait=0], [options={}])
+            console.log("---------Approaching Bitbucket Cloud Api call limit. Sleeping for " + (delayWhenThresholdMet/1000)/60 + "minutes");
             curRepoApiCalls==0; //reset counter
             curCommitApiCalls==0; //reset counter
+            return sleep(delayWhenThresholdMet);
         }
-    });
 }
 
 async function getBBCloudContributorCount (config) {
@@ -150,6 +146,7 @@ async function getBBCloudContributorCount (config) {
                 {
                     //PROPOSAL - add logic here to check checkCommitThrottle(). If it's reached the counter limit for api calls , sleep for 60 minutes - see function
                     //await checkCommitThrottle();
+                    await checkCommitThrottle();
                     var commitResponsedata = await getDataFromBBAPI(nextCommit, config);
                     commitApiCalls++;
                     curCommitApiCalls++;
