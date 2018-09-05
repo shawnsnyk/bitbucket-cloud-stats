@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
         =========================================================');
-        =====V1.0 Bitbucket Cloud - Developer Counter - last 90days======');
+        =====V1.1.0 Bitbucket Cloud - Developer Counter - last 90days======');
         =========================================================');
 
 */
@@ -16,6 +16,10 @@ const moment = require('moment'); //library for processing/ formatting/parsing d
 var includePublicRepos = true; //true of false to include public repo commits in analysis
 
 var cutOffDate;
+
+//API call counter
+var repoApiCalls=0;
+var commitApiCalls=0;
 
 const authenticate = (options) => {
   return "";
@@ -76,7 +80,7 @@ async function getBBCloudContributorCount (config) {
         {
             console.log(nextUrl);
             var responsedata = await getDataFromBBAPI(nextUrl, config);
-            
+            repoApiCalls++;
             if(responsedata.data.next)
             {
                 nextUrl=responsedata.data.next;
@@ -114,6 +118,7 @@ async function getBBCloudContributorCount (config) {
                 while(nextCommit!="" && (is_private==true || includePublicRepos==true)) 
                 {
                     var commitResponsedata = await getDataFromBBAPI(nextCommit, config);
+                    commitApiCalls++;
                     if(commitResponsedata.data.next)
                     {
                         nextCommit= commitResponsedata.data.next
@@ -162,6 +167,10 @@ async function getBBCloudContributorCount (config) {
       console.log(arrContributorNames[nameCounter]);
     }
     console.log('\nUnique User Count:' + arrContributorNames.length);
+    console.log('\n=====Script Stats====');
+    console.log('Repo Api Call Count:' + repoApiCalls);
+    console.log('Commit Api Call Count:' + commitApiCalls);
+    
     console.log('\n=====Script Settings====');
     console.log('includePublicRepos: ' + includePublicRepos)
     return repoData;
