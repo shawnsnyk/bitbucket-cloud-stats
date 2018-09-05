@@ -5,7 +5,7 @@
         =========================================================');
 
 */
-const INTER_CALLS_DELAY = 1000;
+//const INTER_CALLS_DELAY = 1000;
 
 const NBOFDAYS = 90;
 var program = require('commander');
@@ -17,9 +17,17 @@ var includePublicRepos = true; //true of false to include public repo commits in
 
 var cutOffDate;
 
+//Throttling Handler for BitBucket Cloud - See https://confluence.atlassian.com/bitbucket/rate-limits-668173227.html
+var cutOffRepoApi=995; //1000 is limit, adding small buffer
+var cutOffCommitApi=990; //1000 is limit, adding small buffer
+var delayWhenThresholdMet = 65; //minutes - add 5 minute buffer
+
+
 //API call counter
-var repoApiCalls=0;
-var commitApiCalls=0;
+var repoApiCalls=0; //total
+var commitApiCalls=0; //total
+var curRepoApiCalls=0; //current timeframe of throttler
+var curCommitApiCalls=0; //current timeframe of throttler
 
 const authenticate = (options) => {
   return "";
@@ -64,6 +72,19 @@ const getDataFromBBAPI = (url, config) => {
   });
 }
 
+const checkCommitThrottle = () => {
+    //Stub function for possible wait logic
+    //var cutOffRepoApi=995; //1000 is limit, adding small buffer
+    //var cutOffCommitApi=990; //1000 is limit, adding small buffer
+    //var delayWhenThresholdMet = 65; //minutes - add 5 minute buffer
+    if(cutOffRepoApi == curRepoApiCalls || cutOffCommitApi == curCommitApiCalls)
+    {
+        //wait  delayWhenThresholdMet
+        console.log("---------Approaching Bitbucket Cloud Api call limit. Sleeping for " + delayWhenThresholdMet + "minutes, then will resume");
+        curRepoApiCalls==0; //reset counter
+        curCommitApiCalls==0; //reset counter
+    }
+}
 
 async function getBBCloudContributorCount (config) {
     var repoData = [];
@@ -81,6 +102,7 @@ async function getBBCloudContributorCount (config) {
             console.log(nextUrl);
             var responsedata = await getDataFromBBAPI(nextUrl, config);
             repoApiCalls++;
+            curRepoApiCalls++;
             if(responsedata.data.next)
             {
                 nextUrl=responsedata.data.next;
@@ -119,6 +141,7 @@ async function getBBCloudContributorCount (config) {
                 {
                     var commitResponsedata = await getDataFromBBAPI(nextCommit, config);
                     commitApiCalls++;
+                    curCommitApiCalls++;
                     if(commitResponsedata.data.next)
                     {
                         nextCommit= commitResponsedata.data.next
