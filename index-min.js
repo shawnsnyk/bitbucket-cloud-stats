@@ -13,7 +13,7 @@ const chalk = require('chalk'); //string style
 const figlet = require('figlet'); //starwars large text
 const axios = require('axios'); //HTTP agent
 const moment = require('moment'); //library for processing/ formatting/parsing dates
-//var sleep = require('lodash.throttle'); //require('sleep-promise');
+//var sleep = require('lodash.throttle'); -alternate sleep function
 var sleep = require('sleep-promise');
 var includePublicRepos = true; //true of false to include public repo commits in analysis
 
@@ -22,7 +22,7 @@ var cutOffDate;
 //Throttling Handler for BitBucket Cloud - See https://confluence.atlassian.com/bitbucket/rate-limits-668173227.html
 var cutOffRepoApi=995; //1000 is limit, adding small buffer
 var cutOffCommitApi=990; //1000 is limit, adding small buffer
-var delayWhenThresholdMet = (3600 + (60*5))*1000; //minutes - add 5 minute buffer
+var delayWhenThresholdMet = (3600 + (60*5))*1000; //ms - add 5 minute buffer
 
 
 //API call counter
@@ -79,7 +79,7 @@ const checkCommitThrottle = async() => {
         //var cutOffRepoApi=995; //1000 is limit, adding small buffer
         //var cutOffCommitApi=990; //1000 is limit, adding small buffer
         //var delayWhenThresholdMet = 65; //minutes - add 5 minute buffer
-        console.log('check sleepy:' + curCommitApiCalls + '/ ' + cutOffCommitApi);
+        //console.log('check sleepy:' + curCommitApiCalls + '/ ' + cutOffCommitApi);
         if(cutOffRepoApi == curRepoApiCalls || cutOffCommitApi == curCommitApiCalls)
         {
             //wait  delayWhenThresholdMet
