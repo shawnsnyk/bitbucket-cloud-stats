@@ -139,6 +139,7 @@ async function getBBCloudContributorCount (config) {
                 //BB uses pages in API, iterate until all pages processed for commits, but only looking at private repos unless overridden
                 while(nextCommit!="" && (is_private==true || includePublicRepos==true)) 
                 {
+                    //PROPOSAL - add logic here to check checkCommitThrottle(). If it's reached the counter limit for api calls , sleep for 60 minutes - see function
                     var commitResponsedata = await getDataFromBBAPI(nextCommit, config);
                     commitApiCalls++;
                     curCommitApiCalls++;
