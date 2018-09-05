@@ -80,7 +80,7 @@ const checkCommitThrottle = () => {
     if(cutOffRepoApi == curRepoApiCalls || cutOffCommitApi == curCommitApiCalls)
     {
         //wait  delayWhenThresholdMet
-        console.log("---------Approaching Bitbucket Cloud Api call limit. Sleeping for " + delayWhenThresholdMet + "minutes, then will resume");
+        console.log("---------Approaching Bitbucket Cloud Api call limit. Sleeping for " + delayWhenThresholdMet + "minutes");
         curRepoApiCalls==0; //reset counter
         curCommitApiCalls==0; //reset counter
     }
@@ -197,6 +197,10 @@ async function getBBCloudContributorCount (config) {
     
     console.log('\n=====Script Settings====');
     console.log('includePublicRepos: ' + includePublicRepos)
+
+    console.log('\n========================');
+    console.log('=====Script Complete====');
+    console.log('========================');
     return repoData;
   }
 
