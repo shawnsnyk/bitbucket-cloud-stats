@@ -8,6 +8,6 @@ Create an apppassword in bitbucket.
 4. run command "node index-min.js contributorCount -t apppassword -u userid -r repousername"
 
 For example, if your Bitbucket cloud repos were in https://bitbucket.org/snykdemo
-ruid=snykdemo
-uid is for user
-apppassword is for app password you created for account
+-r=ruid=snykdemo
+-u=uid is for user
+-t=apppassword is for app password you created for account
