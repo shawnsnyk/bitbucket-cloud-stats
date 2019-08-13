@@ -21,7 +21,7 @@
     "commander": "^2.17.1",
     "figlet": "^1.2.0",
     "lodash.throttle": "^4.1.1",
-    "moment": "^2.22.2",
+    "moment": "^2.24.0",
     "sleep-promise": "^8.0.1"
   }
 }
