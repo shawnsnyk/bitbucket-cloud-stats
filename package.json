@@ -19,7 +19,7 @@
     "axios": "^0.17.1",
     "chalk": "^2.4.1",
     "commander": "^2.17.1",
-    "figlet": "^1.2.0",
+    "figlet": "^1.2.4",
     "lodash.throttle": "^4.1.1",
     "moment": "^2.22.2",
     "sleep-promise": "^8.0.1"
